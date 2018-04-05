@@ -69,9 +69,8 @@ public class CloneDetector {
 		countBlock = 0;
 		countLine = 0;
 
-
-			CAnalyzer4 canalyzer = new CAnalyzer4();
-			canalyzer.searchFile(new File(Config.target).getAbsoluteFile());
+		CAnalyzer4 canalyzer = new CAnalyzer4();
+		canalyzer.searchFile(new File(Config.target).getAbsoluteFile());
 
 		System.out.println("The number of methods : " + countMethod + "\nThe line : " + countLine);
 
