@@ -386,12 +386,12 @@ public class CAnalyzer4 {
 		int i = 1;
 
 		Token token;
-		File newDirs = new File(mutateDirPass + "\\" + file.getName() + "\\mDLs");
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator +"mDLs");
 		newDirs.mkdirs();
 		while (i - 1 < mDLs.size()) {
 
 			PrintWriter mDLsWriter = new PrintWriter(
-					new BufferedWriter(new FileWriter(mutateDirPass + "\\" + file.getName() + "\\mDLs\\"
+					new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
 							+ file.getName()
 							+ "MDL" + i + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))));
 			CharStream stream = CharStreams.fromString(input, file.toString());
@@ -446,11 +446,11 @@ public class CAnalyzer4 {
 		String input = preProcessor(file);
 		int i = 1;
 		Token token;
-		File newDirs = new File(mutateDirPass + "\\" + file.getName() + "\\mMLs");
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mMLs");
 		newDirs.mkdirs();
 		while (i - 1 < mMLs.size()) {
 			PrintWriter mMLsWriter = new PrintWriter(
-					new BufferedWriter(new FileWriter(mutateDirPass + "\\" + file.getName() + "\\mMLs\\"
+					new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
 							+ file.getName()
 							+ "MML" + i + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))));
 			CharStream stream = CharStreams.fromString(input, file.toString());
@@ -509,11 +509,11 @@ public class CAnalyzer4 {
 		String input = preProcessor(file);
 		int i = 1;
 		Token token;
-		File newDirs = new File(mutateDirPass + "\\" + file.getName() + "\\mSRI");
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mSRI");
 		newDirs.mkdirs();
 		while (i - 1 < mSRV.size()) {
 			PrintWriter mSRIWriter = new PrintWriter(
-					new BufferedWriter(new FileWriter(mutateDirPass + "\\" + file.getName() + "\\mSRI\\"
+					new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
 							+ file.getName()
 							+ "MSRI" + i + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))));
 			CharStream stream = CharStreams.fromString(input, file.toString());
@@ -559,7 +559,7 @@ public class CAnalyzer4 {
 		while (i - 1 < mSRT.size()) {
 			int j = i + mSRV.size();
 			PrintWriter mSRIWriter = new PrintWriter(
-					new BufferedWriter(new FileWriter(mutateDirPass + "\\" + file.getName() + "\\mSRI\\"
+					new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
 							+ file.getName()
 							+ "MSRI" + j + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))),
 					true);
@@ -618,11 +618,11 @@ public class CAnalyzer4 {
 		String input = preProcessor(file);
 		int i = 1;
 		Token token;
-		File newDirs = new File(mutateDirPass + "\\" + file.getName() + "\\mILs");
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mILs");
 		newDirs.mkdirs();
 		while (i - 1 < methodSeparator.size() * 3) {
 			PrintWriter mILsWriter = new PrintWriter(
-					new BufferedWriter(new FileWriter(mutateDirPass + "\\" + file.getName() + "\\mILs\\"
+					new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
 							+ file.getName()
 							+ "MILs" + i + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))));
 			CharStream stream = CharStreams.fromString(input, file.toString());

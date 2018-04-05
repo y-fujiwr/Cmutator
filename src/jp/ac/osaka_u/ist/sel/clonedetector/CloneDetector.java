@@ -66,8 +66,6 @@ public class CloneDetector {
 		connection = DriverManager.getConnection("jdbc:sqlite::memory:");
 
 		System.out.println("Extract word in source code ...");
-		// 特徴ベクトル計算
-		System.out.println("and Calculate vector of each method ...");
 		countMethod = 0;
 		countBlock = 0;
 		countLine = 0;
