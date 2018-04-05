@@ -386,7 +386,7 @@ public class CAnalyzer4 {
 		int i = 1;
 
 		Token token;
-		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator +"mDLs");
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mDLs");
 		newDirs.mkdirs();
 		while (i - 1 < mDLs.size()) {
 
@@ -405,7 +405,10 @@ public class CAnalyzer4 {
 
 			int indent = 0;
 			boolean topFlag = true;
-			
+			boolean caseFlag = false;
+			boolean forFlag = false;
+			int forParen = 0;
+
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (!(index[0] < a && index[1] > a)) {
 					if (topFlag) {
@@ -414,15 +417,32 @@ public class CAnalyzer4 {
 						IntStream.range(0, indent).forEach(xxx -> mDLsWriter.print("\t"));
 					}
 					mDLsWriter.print(token.getText() + " ");
-					if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
+
+					if (token.getType() == CPP14Lexer.Case) {
+						caseFlag = true;
+					} else if (token.getType() == CPP14Lexer.For) {
+						forFlag = true;
+					}
+					if ((!forFlag && token.getType() == CPP14Lexer.Semi) || token.getType() == CPP14Lexer.LeftBrace
 							|| token.getType() == CPP14Lexer.RightBrace) {
-						if(a == index[1]) mDLsWriter.print(" //Deleted");
+						if (a == index[1])
+							mDLsWriter.print(" //Deleted");
 						mDLsWriter.println();
 						if (token.getType() == CPP14Lexer.LeftBrace) {
 							indent++;
-						} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
+						} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag) {
 							indent--;
+						}
 						topFlag = true;
+					} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+						mDLsWriter.println();
+						topFlag = true;
+						caseFlag = false;
+					} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+						forParen++;
+					} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+						if (--forParen == 0)
+							forFlag = false;
 					} else
 						topFlag = false;
 				}
@@ -466,6 +486,9 @@ public class CAnalyzer4 {
 
 			int indent = 0;
 			boolean topFlag = true;
+			boolean forFlag = false;
+			boolean caseFlag = false;
+			int forParen = 0;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (topFlag) {
 					if (token.getType() == CPP14Lexer.RightBrace)
@@ -478,8 +501,13 @@ public class CAnalyzer4 {
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
 				else
 					mMLsWriter.print(token.getText() + " ");
-
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi) || token.getType() == CPP14Lexer.LeftBrace
 						|| token.getType() == CPP14Lexer.RightBrace) {
 					mMLsWriter.println();
 					if (token.getType() == CPP14Lexer.LeftBrace) {
@@ -487,6 +515,15 @@ public class CAnalyzer4 {
 					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
 						indent--;
 					topFlag = true;
+				} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+					mMLsWriter.println();
+					topFlag = true;
+					caseFlag = false;
+				} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+					forParen++;
+				} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+					if (--forParen == 0)
+						forFlag = false;
 				} else
 					topFlag = false;
 				a++;
@@ -530,6 +567,10 @@ public class CAnalyzer4 {
 			int indent = 0;
 			boolean topFlag = true;
 			boolean sriFlag = false;
+			boolean forFlag = false;
+			boolean caseFlag = false;
+			int forParen = 0;
+			
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (topFlag) {
 					if (token.getType() == CPP14Lexer.RightBrace)
@@ -540,14 +581,19 @@ public class CAnalyzer4 {
 				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target)) {
 					mSRIWriter.print(token.getText() + "mSRI ");
 					sriFlag = true;
-				}
-				else
+				} else
 					mSRIWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
 
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi)|| token.getType() == CPP14Lexer.LeftBrace
 						|| token.getType() == CPP14Lexer.RightBrace) {
 					if (sriFlag) {
-						mSRIWriter.print("//substituted "+ target + " with " + target + "mSRI");
+						mSRIWriter.print("//substituted " + target + " with " + target + "mSRI");
 						sriFlag = false;
 					}
 					mSRIWriter.println();
@@ -555,9 +601,17 @@ public class CAnalyzer4 {
 						indent++;
 					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
 						indent--;
-					topFlag = true;
-				} else
-					topFlag = false;
+					topFlag = true;} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+						mSRIWriter.println();
+						topFlag = true;
+						caseFlag = false;
+					} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+						forParen++;
+					} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+						if (--forParen == 0)
+							forFlag = false;
+					} else
+						topFlag = false;
 				a++;
 			}
 			i++;
@@ -584,6 +638,9 @@ public class CAnalyzer4 {
 			int indent = 0;
 			boolean topFlag = true;
 			boolean sriFlag = false;
+			boolean caseFlag = false;
+			boolean forFlag = false;
+			int forParen = 0;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (topFlag) {
 					if (token.getType() == CPP14Lexer.RightBrace)
@@ -595,15 +652,20 @@ public class CAnalyzer4 {
 					mSRIWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
 					sriFlag = true;
-				}
-				else
+				} else
 					mSRIWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
 
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi)|| token.getType() == CPP14Lexer.LeftBrace
 						|| token.getType() == CPP14Lexer.RightBrace) {
 					if (sriFlag) {
 						mSRIWriter.print("//substituted with " + CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
-								CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) );
+								CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1));
 						sriFlag = false;
 					}
 					mSRIWriter.println();
@@ -611,9 +673,18 @@ public class CAnalyzer4 {
 						indent++;
 					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
 						indent--;
-					topFlag = true;
-				} else
-					topFlag = false;
+					topFlag = true;				
+					} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+						mSRIWriter.println();
+						topFlag = true;
+						caseFlag = false;
+					} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+						forParen++;
+					} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+						if (--forParen == 0)
+							forFlag = false;
+					} else
+						topFlag = false;
 				a++;
 			}
 			i++;
@@ -654,6 +725,9 @@ public class CAnalyzer4 {
 
 			int indent = 0;
 			boolean topFlag = true;
+			boolean forFlag = false;
+			boolean caseFlag = false;
+			int forParen = 0;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (topFlag) {
 					if (token.getType() == CPP14Lexer.RightBrace)
@@ -676,8 +750,14 @@ public class CAnalyzer4 {
 
 				} else
 					mILsWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
 
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi)|| token.getType() == CPP14Lexer.LeftBrace
 						|| token.getType() == CPP14Lexer.RightBrace) {
 					mILsWriter.println();
 					if (token.getType() == CPP14Lexer.LeftBrace) {
@@ -685,6 +765,15 @@ public class CAnalyzer4 {
 					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
 						indent--;
 					topFlag = true;
+				} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+					mILsWriter.println();
+					topFlag = true;
+					caseFlag = false;
+				} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+					forParen++;
+				} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+					if (--forParen == 0)
+						forFlag = false;
 				} else
 					topFlag = false;
 				a++;
