@@ -405,6 +405,7 @@ public class CAnalyzer4 {
 
 			int indent = 0;
 			boolean topFlag = true;
+			
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (!(index[0] < a && index[1] > a)) {
 					if (topFlag) {
@@ -415,6 +416,7 @@ public class CAnalyzer4 {
 					mDLsWriter.print(token.getText() + " ");
 					if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
 							|| token.getType() == CPP14Lexer.RightBrace) {
+						if(a == index[1]) mDLsWriter.print(" //Deleted");
 						mDLsWriter.println();
 						if (token.getType() == CPP14Lexer.LeftBrace) {
 							indent++;
@@ -527,6 +529,7 @@ public class CAnalyzer4 {
 
 			int indent = 0;
 			boolean topFlag = true;
+			boolean sriFlag = false;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (topFlag) {
 					if (token.getType() == CPP14Lexer.RightBrace)
@@ -534,13 +537,19 @@ public class CAnalyzer4 {
 					IntStream.range(0, indent).forEach(xxx -> mSRIWriter.print("\t"));
 				}
 
-				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target))
+				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target)) {
 					mSRIWriter.print(token.getText() + "mSRI ");
+					sriFlag = true;
+				}
 				else
 					mSRIWriter.print(token.getText() + " ");
 
 				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
 						|| token.getType() == CPP14Lexer.RightBrace) {
+					if (sriFlag) {
+						mSRIWriter.print("//substituted "+ target + " with " + target + "mSRI");
+						sriFlag = false;
+					}
 					mSRIWriter.println();
 					if (token.getType() == CPP14Lexer.LeftBrace) {
 						indent++;
@@ -574,6 +583,7 @@ public class CAnalyzer4 {
 
 			int indent = 0;
 			boolean topFlag = true;
+			boolean sriFlag = false;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (topFlag) {
 					if (token.getType() == CPP14Lexer.RightBrace)
@@ -581,14 +591,21 @@ public class CAnalyzer4 {
 					IntStream.range(0, indent).forEach(xxx -> mSRIWriter.print("\t"));
 				}
 
-				if (a == index[0])
+				if (a == index[0]) {
 					mSRIWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
+					sriFlag = true;
+				}
 				else
 					mSRIWriter.print(token.getText() + " ");
 
 				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
 						|| token.getType() == CPP14Lexer.RightBrace) {
+					if (sriFlag) {
+						mSRIWriter.print("//substituted with " + CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
+								CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) );
+						sriFlag = false;
+					}
 					mSRIWriter.println();
 					if (token.getType() == CPP14Lexer.LeftBrace) {
 						indent++;
@@ -647,13 +664,13 @@ public class CAnalyzer4 {
 				if (a == index[1]) {
 					switch ((i - 1) % 3) {
 					case 0:
-						mILsWriter.print("if ( false ) { ; } else { ; } } ");
+						mILsWriter.print("if ( false ) { ; } else { ; } } //Insert");
 						break;
 					case 1:
-						mILsWriter.print("for ( ; ; ) { break ; } } ");
+						mILsWriter.print("for ( ; ; ) { break ; } } //Insert");
 						break;
 					case 2:
-						mILsWriter.print("while ( 1 ) { break ; } } ");
+						mILsWriter.print("while ( 1 ) { break ; } } //Insert");
 						break;
 					}
 

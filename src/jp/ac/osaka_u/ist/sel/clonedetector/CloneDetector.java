@@ -65,7 +65,6 @@ public class CloneDetector {
 
 		connection = DriverManager.getConnection("jdbc:sqlite::memory:");
 
-		System.out.println("Extract word in source code ...");
 		countMethod = 0;
 		countBlock = 0;
 		countLine = 0;
@@ -74,8 +73,7 @@ public class CloneDetector {
 			CAnalyzer4 canalyzer = new CAnalyzer4();
 			canalyzer.searchFile(new File(Config.target).getAbsoluteFile());
 
-		System.out.println("The number of methods : " + countMethod + "\nThe number of blocks : " + countBlock
-				+ "\nThe line : " + countLine);
+		System.out.println("The number of methods : " + countMethod + "\nThe line : " + countLine);
 
 		// System.out.println("wordmap.size = " + wordMap.size());
 		currentTime = System.currentTimeMillis();
