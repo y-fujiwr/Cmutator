@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.stream.IntStream;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -402,11 +403,52 @@ public class CAnalyzer4 {
 			int a = 0;
 			int[] index = mDLs.get(i - 1);
 
+			int indent = 0;
+			boolean topFlag = true;
+			boolean caseFlag = false;
+			boolean forFlag = false;
+			int forParen = 0;
+
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (!(index[0] < a && index[1] > a))
+				if (!(index[0] < a && index[1] > a)) {
+					if (topFlag) {
+						if (token.getType() == CPP14Lexer.RightBrace)
+							indent--;
+						IntStream.range(0, indent).forEach(xxx -> mDLsWriter.print("\t"));
+					}
 					mDLsWriter.print(token.getText() + " ");
+
+					if (token.getType() == CPP14Lexer.Case) {
+						caseFlag = true;
+					} else if (token.getType() == CPP14Lexer.For) {
+						forFlag = true;
+					}
+					if ((!forFlag && token.getType() == CPP14Lexer.Semi) || token.getType() == CPP14Lexer.LeftBrace
+							|| token.getType() == CPP14Lexer.RightBrace) {
+						if (a == index[1])
+							mDLsWriter.print(" //Deleted");
+						mDLsWriter.println();
+						if (token.getType() == CPP14Lexer.LeftBrace) {
+							indent++;
+						} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag) {
+							indent--;
+						}
+						topFlag = true;
+					} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+						mDLsWriter.println();
+						topFlag = true;
+						caseFlag = false;
+					} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+						forParen++;
+					} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+						if (--forParen == 0)
+							forFlag = false;
+					} else
+						topFlag = false;
+				}
 				a++;
 			}
+
 			i++;
 			mDLsWriter.println();
 			mDLsWriter.close();
@@ -442,14 +484,51 @@ public class CAnalyzer4 {
 			int a = 0;
 			int[] index = mMLs.get(i - 1);
 
+			int indent = 0;
+			boolean topFlag = true;
+			boolean forFlag = false;
+			boolean caseFlag = false;
+			int forParen = 0;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
+				if (topFlag) {
+					if (token.getType() == CPP14Lexer.RightBrace)
+						indent--;
+					IntStream.range(0, indent).forEach(xxx -> mMLsWriter.print("\t"));
+				}
+
 				if (a == index[0])
 					mMLsWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
 				else
 					mMLsWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi) || token.getType() == CPP14Lexer.LeftBrace
+						|| token.getType() == CPP14Lexer.RightBrace) {
+					mMLsWriter.println();
+					if (token.getType() == CPP14Lexer.LeftBrace) {
+						indent++;
+					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
+						indent--;
+					topFlag = true;
+				} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+					mMLsWriter.println();
+					topFlag = true;
+					caseFlag = false;
+				} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+					forParen++;
+				} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+					if (--forParen == 0)
+						forFlag = false;
+				} else
+					topFlag = false;
 				a++;
 			}
+
 			i++;
 			mMLsWriter.println();
 			mMLsWriter.close();
@@ -485,11 +564,54 @@ public class CAnalyzer4 {
 			int a = 0;
 			String target = mSRV.get(i - 1);
 
+			int indent = 0;
+			boolean topFlag = true;
+			boolean sriFlag = false;
+			boolean forFlag = false;
+			boolean caseFlag = false;
+			int forParen = 0;
+			
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target))
+				if (topFlag) {
+					if (token.getType() == CPP14Lexer.RightBrace)
+						indent--;
+					IntStream.range(0, indent).forEach(xxx -> mSRIWriter.print("\t"));
+				}
+
+				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target)) {
 					mSRIWriter.print(token.getText() + "mSRI ");
-				else
+					sriFlag = true;
+				} else
 					mSRIWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
+
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi)|| token.getType() == CPP14Lexer.LeftBrace
+						|| token.getType() == CPP14Lexer.RightBrace) {
+					if (sriFlag) {
+						mSRIWriter.print("//substituted " + target + " with " + target + "mSRI");
+						sriFlag = false;
+					}
+					mSRIWriter.println();
+					if (token.getType() == CPP14Lexer.LeftBrace) {
+						indent++;
+					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
+						indent--;
+					topFlag = true;} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+						mSRIWriter.println();
+						topFlag = true;
+						caseFlag = false;
+					} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+						forParen++;
+					} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+						if (--forParen == 0)
+							forFlag = false;
+					} else
+						topFlag = false;
 				a++;
 			}
 			i++;
@@ -512,12 +634,57 @@ public class CAnalyzer4 {
 			tokens.fill();
 			int a = 0;
 			int[] index = mSRT.get(i - 1);
+
+			int indent = 0;
+			boolean topFlag = true;
+			boolean sriFlag = false;
+			boolean caseFlag = false;
+			boolean forFlag = false;
+			int forParen = 0;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (a == index[0])
+				if (topFlag) {
+					if (token.getType() == CPP14Lexer.RightBrace)
+						indent--;
+					IntStream.range(0, indent).forEach(xxx -> mSRIWriter.print("\t"));
+				}
+
+				if (a == index[0]) {
 					mSRIWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
-				else
+					sriFlag = true;
+				} else
 					mSRIWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
+
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi)|| token.getType() == CPP14Lexer.LeftBrace
+						|| token.getType() == CPP14Lexer.RightBrace) {
+					if (sriFlag) {
+						mSRIWriter.print("//substituted with " + CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
+								CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1));
+						sriFlag = false;
+					}
+					mSRIWriter.println();
+					if (token.getType() == CPP14Lexer.LeftBrace) {
+						indent++;
+					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
+						indent--;
+					topFlag = true;				
+					} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+						mSRIWriter.println();
+						topFlag = true;
+						caseFlag = false;
+					} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+						forParen++;
+					} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+						if (--forParen == 0)
+							forFlag = false;
+					} else
+						topFlag = false;
 				a++;
 			}
 			i++;
@@ -555,23 +722,63 @@ public class CAnalyzer4 {
 
 			int a = 0;
 			int[] index = methodSeparator.get((i - 1) / 3);
+
+			int indent = 0;
+			boolean topFlag = true;
+			boolean forFlag = false;
+			boolean caseFlag = false;
+			int forParen = 0;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
+				if (topFlag) {
+					if (token.getType() == CPP14Lexer.RightBrace)
+						indent--;
+					IntStream.range(0, indent).forEach(xxx -> mILsWriter.print("\t"));
+				}
+
 				if (a == index[1]) {
 					switch ((i - 1) % 3) {
 					case 0:
-						mILsWriter.print("if ( false ) { ; } else { ; } } ");
+						mILsWriter.print("if ( false ) { ; } else { ; } } //Insert");
 						break;
 					case 1:
-						mILsWriter.print("for ( ; ; ) { break ; } } ");
+						mILsWriter.print("for ( ; ; ) { break ; } } //Insert");
 						break;
 					case 2:
-						mILsWriter.print("while ( 1 ) { break ; } } ");
+						mILsWriter.print("while ( 1 ) { break ; } } //Insert");
 						break;
 					}
+
 				} else
 					mILsWriter.print(token.getText() + " ");
+				
+				if (token.getType() == CPP14Lexer.Case) {
+					caseFlag = true;
+				} else if (token.getType() == CPP14Lexer.For) {
+					forFlag = true;
+				}
+
+				if ((!forFlag && token.getType() == CPP14Lexer.Semi)|| token.getType() == CPP14Lexer.LeftBrace
+						|| token.getType() == CPP14Lexer.RightBrace) {
+					mILsWriter.println();
+					if (token.getType() == CPP14Lexer.LeftBrace) {
+						indent++;
+					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
+						indent--;
+					topFlag = true;
+				} else if (caseFlag && token.getType() == CPP14Lexer.Colon) {
+					mILsWriter.println();
+					topFlag = true;
+					caseFlag = false;
+				} else if (token.getType() == CPP14Lexer.LeftParen && forFlag) {
+					forParen++;
+				} else if (token.getType() == CPP14Lexer.RightParen && forFlag) {
+					if (--forParen == 0)
+						forFlag = false;
+				} else
+					topFlag = false;
 				a++;
 			}
+
 			i++;
 			mILsWriter.println();
 			mILsWriter.close();
