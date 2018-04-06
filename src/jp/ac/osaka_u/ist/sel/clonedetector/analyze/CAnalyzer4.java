@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.stream.IntStream;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -386,7 +385,7 @@ public class CAnalyzer4 {
 		int i = 1;
 
 		Token token;
-		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator +"mDLs");
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mDLs");
 		newDirs.mkdirs();
 		while (i - 1 < mDLs.size()) {
 
@@ -403,30 +402,11 @@ public class CAnalyzer4 {
 			int a = 0;
 			int[] index = mDLs.get(i - 1);
 
-			int indent = 0;
-			boolean topFlag = true;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (!(index[0] < a && index[1] > a)) {
-					if (topFlag) {
-						if (token.getType() == CPP14Lexer.RightBrace)
-							indent--;
-						IntStream.range(0, indent).forEach(xxx -> mDLsWriter.print("\t"));
-					}
+				if (!(index[0] < a && index[1] > a))
 					mDLsWriter.print(token.getText() + " ");
-					if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
-							|| token.getType() == CPP14Lexer.RightBrace) {
-						mDLsWriter.println();
-						if (token.getType() == CPP14Lexer.LeftBrace) {
-							indent++;
-						} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
-							indent--;
-						topFlag = true;
-					} else
-						topFlag = false;
-				}
 				a++;
 			}
-
 			i++;
 			mDLsWriter.println();
 			mDLsWriter.close();
@@ -462,34 +442,14 @@ public class CAnalyzer4 {
 			int a = 0;
 			int[] index = mMLs.get(i - 1);
 
-			int indent = 0;
-			boolean topFlag = true;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (topFlag) {
-					if (token.getType() == CPP14Lexer.RightBrace)
-						indent--;
-					IntStream.range(0, indent).forEach(xxx -> mMLsWriter.print("\t"));
-				}
-
 				if (a == index[0])
 					mMLsWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
 				else
 					mMLsWriter.print(token.getText() + " ");
-
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
-						|| token.getType() == CPP14Lexer.RightBrace) {
-					mMLsWriter.println();
-					if (token.getType() == CPP14Lexer.LeftBrace) {
-						indent++;
-					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
-						indent--;
-					topFlag = true;
-				} else
-					topFlag = false;
 				a++;
 			}
-
 			i++;
 			mMLsWriter.println();
 			mMLsWriter.close();
@@ -525,30 +485,11 @@ public class CAnalyzer4 {
 			int a = 0;
 			String target = mSRV.get(i - 1);
 
-			int indent = 0;
-			boolean topFlag = true;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (topFlag) {
-					if (token.getType() == CPP14Lexer.RightBrace)
-						indent--;
-					IntStream.range(0, indent).forEach(xxx -> mSRIWriter.print("\t"));
-				}
-
 				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target))
 					mSRIWriter.print(token.getText() + "mSRI ");
 				else
 					mSRIWriter.print(token.getText() + " ");
-
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
-						|| token.getType() == CPP14Lexer.RightBrace) {
-					mSRIWriter.println();
-					if (token.getType() == CPP14Lexer.LeftBrace) {
-						indent++;
-					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
-						indent--;
-					topFlag = true;
-				} else
-					topFlag = false;
 				a++;
 			}
 			i++;
@@ -571,32 +512,12 @@ public class CAnalyzer4 {
 			tokens.fill();
 			int a = 0;
 			int[] index = mSRT.get(i - 1);
-
-			int indent = 0;
-			boolean topFlag = true;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (topFlag) {
-					if (token.getType() == CPP14Lexer.RightBrace)
-						indent--;
-					IntStream.range(0, indent).forEach(xxx -> mSRIWriter.print("\t"));
-				}
-
 				if (a == index[0])
 					mSRIWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
 				else
 					mSRIWriter.print(token.getText() + " ");
-
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
-						|| token.getType() == CPP14Lexer.RightBrace) {
-					mSRIWriter.println();
-					if (token.getType() == CPP14Lexer.LeftBrace) {
-						indent++;
-					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
-						indent--;
-					topFlag = true;
-				} else
-					topFlag = false;
 				a++;
 			}
 			i++;
@@ -634,16 +555,7 @@ public class CAnalyzer4 {
 
 			int a = 0;
 			int[] index = methodSeparator.get((i - 1) / 3);
-
-			int indent = 0;
-			boolean topFlag = true;
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
-				if (topFlag) {
-					if (token.getType() == CPP14Lexer.RightBrace)
-						indent--;
-					IntStream.range(0, indent).forEach(xxx -> mILsWriter.print("\t"));
-				}
-
 				if (a == index[1]) {
 					switch ((i - 1) % 3) {
 					case 0:
@@ -656,23 +568,10 @@ public class CAnalyzer4 {
 						mILsWriter.print("while ( 1 ) { break ; } } ");
 						break;
 					}
-
 				} else
 					mILsWriter.print(token.getText() + " ");
-
-				if (token.getType() == CPP14Lexer.Semi || token.getType() == CPP14Lexer.LeftBrace
-						|| token.getType() == CPP14Lexer.RightBrace) {
-					mILsWriter.println();
-					if (token.getType() == CPP14Lexer.LeftBrace) {
-						indent++;
-					} else if (token.getType() == CPP14Lexer.RightBrace && !topFlag)
-						indent--;
-					topFlag = true;
-				} else
-					topFlag = false;
 				a++;
 			}
-
 			i++;
 			mILsWriter.println();
 			mILsWriter.close();
