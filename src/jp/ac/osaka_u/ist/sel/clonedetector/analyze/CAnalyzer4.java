@@ -159,16 +159,16 @@ public class CAnalyzer4 {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String line;
 			while ((line = reader.readLine()) != null) {
-				// #から始まる行の削除
+				// マクロ行の末尾に#newlineを挿入
 				if (line.startsWith("#")) {
-					buf.append("\n");
+					buf.append(line + "\n#newline\n");
 					// 行の最後が'\'で終わる場合次の行もマクロとして削除
 					while (line.matches(".*?\\\\s*")) {
 						// System.out.println(file);
 						// System.out.println(line);
+						buf.append(line + "\n#newline\n");
 						line += reader.readLine();
-						buf.append("\n");
-
+						buf.append(line + "\n#newline\n");
 					}
 
 					// else | elif を見つけたら，マクロによって中括弧の破たんがないか調査
@@ -404,6 +404,8 @@ public class CAnalyzer4 {
 
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (!(index[0] < a && index[1] > a))
+					if(token.getText().equals("#newline"))
+						mDLsWriter.println();
 					mDLsWriter.print(token.getText() + " ");
 				a++;
 			}
@@ -446,8 +448,11 @@ public class CAnalyzer4 {
 				if (a == index[0])
 					mMLsWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
-				else
+				else {
+					if(token.getText().equals("#newline"))
+						mMLsWriter.println();
 					mMLsWriter.print(token.getText() + " ");
+				}
 				a++;
 			}
 			i++;
@@ -488,8 +493,11 @@ public class CAnalyzer4 {
 			while ((token = tokens.get(a)).getType() != Token.EOF) {
 				if (token.getType() == CPP14Lexer.Identifier && token.getText().equals(target))
 					mSRIWriter.print(token.getText() + "mSRI ");
-				else
+				else {
+					if(token.getText().equals("#newline"))
+						mSRIWriter.println();
 					mSRIWriter.print(token.getText() + " ");
+				}
 				a++;
 			}
 			i++;
@@ -516,8 +524,11 @@ public class CAnalyzer4 {
 				if (a == index[0])
 					mSRIWriter.print(CPP14Lexer._LITERAL_NAMES[index[1]].substring(1,
 							CPP14Lexer._LITERAL_NAMES[index[1]].length() - 1) + " ");
-				else
+				else {
+					if(token.getText().equals("#newline"))
+						mSRIWriter.println();
 					mSRIWriter.print(token.getText() + " ");
+				}
 				a++;
 			}
 			i++;
@@ -568,8 +579,11 @@ public class CAnalyzer4 {
 						mILsWriter.print("while ( 1 ) { break ; } } ");
 						break;
 					}
-				} else
+				} else {
+					if(token.getText().equals("#newline"))
+						mILsWriter.println();
 					mILsWriter.print(token.getText() + " ");
+				}
 				a++;
 			}
 			i++;
