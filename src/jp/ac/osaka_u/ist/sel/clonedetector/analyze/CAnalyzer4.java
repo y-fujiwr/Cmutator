@@ -161,7 +161,7 @@ public class CAnalyzer4 {
 			while ((line = reader.readLine()) != null) {
 				// マクロ行の前後に#newlineを挿入
 				if (line.startsWith("#")) {
-					buf.append("#newline\n" line + "\n#newline\n");
+					buf.append("#newline\n" + line + "\n#newline\n");
 					// 行の最後が'\'で終わる場合次の行もマクロとして削除
 					while (line.matches(".*?\\\\s*")) {
 						// System.out.println(file);
