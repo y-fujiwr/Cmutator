@@ -34,7 +34,6 @@ public class CAnalyzer4 {
 	private ArrayList<int[]> mMLs;
 	private ArrayList<String> mSRV;
 	private ArrayList<int[]> mSRT;
-	private boolean mutateFlag = true;
 	private static final String mutateDirPass = "output";
 
 	public CAnalyzer4() {
@@ -58,12 +57,10 @@ public class CAnalyzer4 {
 				mSRV = new ArrayList<String>();
 				mSRT = new ArrayList<int[]>();
 				extractMethod(file);
-				if (mutateFlag) {
-					executeMDLs(file);
-					executeMMLs(file);
-					executeMSRI(file);
-					executeMILs(file);
-				}
+				executeMDLs(file);
+				executeMMLs(file);
+				executeMSRI(file);
+				executeMILs(file);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -102,6 +99,7 @@ public class CAnalyzer4 {
 		index[0] = p;
 
 		while ((token = tokens.get(p)).getType() != Token.EOF) {
+			System.out.println(token.getType());
 			Block block = new Block();
 			block.setTokenList(token);
 			switch (token.getType()) {
