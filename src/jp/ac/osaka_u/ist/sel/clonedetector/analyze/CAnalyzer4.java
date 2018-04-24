@@ -406,7 +406,7 @@ public class CAnalyzer4 {
 				if (!(index[0] < a && index[1] > a))
 					if(token.getText().equals("#newline"))
 						mDLsWriter.println();
-					mDLsWriter.print(token.getText() + " ");
+					else mDLsWriter.print(token.getText() + " ");
 				a++;
 			}
 			i++;
@@ -451,7 +451,7 @@ public class CAnalyzer4 {
 				else {
 					if(token.getText().equals("#newline"))
 						mMLsWriter.println();
-					mMLsWriter.print(token.getText() + " ");
+					else mMLsWriter.print(token.getText() + " ");
 				}
 				a++;
 			}
@@ -496,7 +496,7 @@ public class CAnalyzer4 {
 				else {
 					if(token.getText().equals("#newline"))
 						mSRIWriter.println();
-					mSRIWriter.print(token.getText() + " ");
+					else mSRIWriter.print(token.getText() + " ");
 				}
 				a++;
 			}
@@ -527,7 +527,7 @@ public class CAnalyzer4 {
 				else {
 					if(token.getText().equals("#newline"))
 						mSRIWriter.println();
-					mSRIWriter.print(token.getText() + " ");
+					else mSRIWriter.print(token.getText() + " ");
 				}
 				a++;
 			}
@@ -582,7 +582,7 @@ public class CAnalyzer4 {
 				} else {
 					if(token.getText().equals("#newline"))
 						mILsWriter.println();
-					mILsWriter.print(token.getText() + " ");
+					else mILsWriter.print(token.getText() + " ");
 				}
 				a++;
 			}
