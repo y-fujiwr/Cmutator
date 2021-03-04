@@ -38,6 +38,7 @@ public class CAnalyzer4 {
 	private ArrayList<int[]> mSRT;
 	private ArrayList<Integer> mRDs;
 	private ArrayList<int[]> mROs;
+	private ArrayList<Integer> mCR;
 	private int[] methodLinePosition;
 	private boolean mutateFlag = true;
 	private static final boolean doFirstFunctionOnly = true;
@@ -65,6 +66,7 @@ public class CAnalyzer4 {
 				mSRT = new ArrayList<int[]>();
 				mRDs = new ArrayList<Integer>();
 				mROs = new ArrayList<int[]>();
+				mCR = new ArrayList<Integer>();
 				extractMethod(file);
 				if (mutateFlag) {
 //					executeMDLs(file);
@@ -72,7 +74,8 @@ public class CAnalyzer4 {
 //					executeMSRI(file);
 //					executeMILs(file);
 //					executeMRDs(file);
-					executeMROs(file);
+//					executeMROs(file);
+					executeMCR(file);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -286,6 +289,10 @@ public class CAnalyzer4 {
 				}
 				break;
 			// 以下defaultまでmutation関係
+				case CPP14Lexer.For:
+				case CPP14Lexer.While:
+					mCR.add(p);
+					break;
 			case CPP14Lexer.Semi:
 				indexMDL[1] = p;
 				mDLs.add(indexMDL);
@@ -838,6 +845,115 @@ public class CAnalyzer4 {
 				mROsID++;
 			}
 			if(doFirstFunctionOnly)break;
+		}
+	}
+	private void executeMCR(File file) throws IOException {
+		String input = preProcessor(file);
+		Token token;
+		CharStream stream = CharStreams.fromString(input, file.toString());
+		CPP14Lexer lexer = new CPP14Lexer(stream);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(DescriptiveErrorListener.INSTANCE);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		tokens.fill();
+		if (!doFirstFunctionOnly) {
+		} else {
+			for(int n=0;n< mCR.size();n++) {
+				int[] target = {0, 0};
+				target = methodSeparator.get(0);
+
+				File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mCR");
+				newDirs.mkdirs();
+				PrintWriter mCRWriter = new PrintWriter(
+						new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
+								+ file.getName()
+								+ "MCR" + n + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))));
+				int a;
+				int isFor = -1;
+				int isWhile = -1;
+				StringBuilder code = new StringBuilder();
+				int numParen = 0;
+				int numBrace = 0;
+				int numExpr = 0;
+				boolean isAfterConExpr = false;
+				StringBuilder firstExpr = new StringBuilder();
+				StringBuilder secondExpr = new StringBuilder();
+				StringBuilder thirdExpr = new StringBuilder();
+				for (a = target[0]; a <= target[1]; a++) {
+					token = tokens.get(a);
+					if (a == mCR.get(n)) {
+						if (token.getText().equals("for")) isFor++;
+						if (token.getText().equals("while")) isWhile++;
+					} else if (isFor < 0 && isWhile < 0) {
+						code.append(token.getText() + " ");
+					} else if (isFor >= 0) {
+						isFor++;
+					} else if (isWhile >= 0){
+						isWhile++;
+					}
+					if(isWhile>=2) {
+						if (token.getText().equals("(")) numParen++;
+						if (token.getText().equals(")")) numParen--;
+						if (numParen <= -1) {
+							code.append("for ( ; " + firstExpr.toString() + "; ) ");
+							firstExpr = new StringBuilder();
+							isWhile = -1;
+							numParen = 0;
+						} else {
+							firstExpr.append(token.getText() + " ");
+						}
+					}
+					if(isFor>=2){
+						if (token.getText().equals("(")) numParen++;
+						if (token.getText().equals(")")) numParen--;
+						switch (numExpr){
+							case 0:
+								firstExpr.append(token.getText() + " ");
+								break;
+							case 1:
+								if(!token.getText().equals(";")) secondExpr.append(token.getText() + " ");
+								break;
+							case 2:
+								if(numParen>=0) thirdExpr.append(token.getText() + " ");
+								break;
+						}
+						if(token.getText().equals(";")) numExpr++;
+						if(numExpr>=2&&numParen<=-1){
+							if(secondExpr.toString().equals(""))
+								code.append(firstExpr.toString()+"while ( true ) ");
+							else
+								code.append(firstExpr.toString()+"while ( "+secondExpr.toString()+") ");
+							numExpr = -1;
+							numParen = 0;
+							isAfterConExpr = true;
+						}else if(isAfterConExpr){
+							if(token.getText().equals("{")){
+								numBrace++;
+								while(numBrace>=1){
+									code.append(token.getText()+" ");
+									a++;
+									token = tokens.get(a);
+									if (token.getText().equals("{")) numBrace++;
+									if (token.getText().equals("}")) numBrace--;
+								}
+								code.append(thirdExpr.toString()+"; } ");
+							}else{
+								code.append("{ ");
+								while(!token.getText().equals(";")){
+									code.append(token.getText()+" ");
+									a++;
+									token = tokens.get(a);
+								}
+								code.append("; "+ thirdExpr.toString()+"; } ");
+							}
+							isAfterConExpr = false;
+							isFor = -1;
+						}
+					}
+				}
+				mCRWriter.println(code.toString());
+				mCRWriter.close();
+			}
 		}
 	}
 	private void print(Object a){
