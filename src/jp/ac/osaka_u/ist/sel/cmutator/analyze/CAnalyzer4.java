@@ -37,6 +37,8 @@ public class CAnalyzer4 {
 	private ArrayList<String> mSRV;
 	private ArrayList<int[]> mSRT;
 	private ArrayList<Integer> mRDs;
+	private ArrayList<int[]> mROs;
+	private int[] methodLinePosition;
 	private boolean mutateFlag = true;
 	private static final boolean doFirstFunctionOnly = true;
 	private static final String mutateDirPass = Config.OUTPUT_DIR;
@@ -62,13 +64,15 @@ public class CAnalyzer4 {
 				mSRV = new ArrayList<String>();
 				mSRT = new ArrayList<int[]>();
 				mRDs = new ArrayList<Integer>();
+				mROs = new ArrayList<int[]>();
 				extractMethod(file);
 				if (mutateFlag) {
 //					executeMDLs(file);
 //					executeMMLs(file);
 //					executeMSRI(file);
 //					executeMILs(file);
-					executeMRDs(file);
+//					executeMRDs(file);
+					executeMROs(file);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -139,6 +143,8 @@ public class CAnalyzer4 {
 
 					CMutator.countMethod++;
 					p++;
+					methodLinePosition = new int[]{0, 0};
+					methodLinePosition[0] = token.getLine();
 					extractBlock(tokens, file);
 					didExtract = true;
 
@@ -264,6 +270,8 @@ public class CAnalyzer4 {
 				indexMDL[0] = p;
 				break;
 			case CPP14Lexer.RightBrace:
+				methodLinePosition[1] = token.getLine();
+				mROs.add(methodLinePosition);
 				return;
 			case CPP14Lexer.Identifier:
 				if (flagMSRV && !mSRV.contains(token.getText()))
@@ -745,7 +753,6 @@ public class CAnalyzer4 {
 					decSentPositions.add(tokenStream.size());
 				}
 				if(isDeclaration==true) {
-					System.out.print(token.getText());
 					decSent.append(token.getText()+" ");
 					if(token.getText().equals(";")){
 						isDeclaration=false;
@@ -786,5 +793,54 @@ public class CAnalyzer4 {
 				mRDsWriter.close();
 			}
 		}
+	}
+	private void executeMROs(File file) throws IOException {
+		String input = preProcessor(file);
+		String[] inputs = input.split("\n");
+		if(inputs.length<2)return;
+		File newDirs = new File(mutateDirPass + File.separator + file.getName() + File.separator + "mROs");
+		newDirs.mkdirs();
+		int mROsID = 0;
+		for(int n=0;n<mROs.size();n++){
+			for(int m=mROs.get(n)[0]+1;m<mROs.get(n)[1]-1;m++) {
+				PrintWriter mROsWriter = new PrintWriter(
+						new BufferedWriter(new FileWriter(newDirs.getPath() + File.separator
+								+ file.getName()
+								+ "MROs" + mROsID + "." + file.getName().substring(file.getName().lastIndexOf(".") + 1))));
+				ArrayList<Integer> lineList = new ArrayList<Integer>();
+				inputs = input.split("\n");
+				for (int i = mROs.get(n)[0] + 1; i < mROs.get(n)[1] - 1; i++) {
+					lineList.add(i);
+				}
+				Collections.shuffle(lineList);
+				String temp = inputs[lineList.get(0)];
+				inputs[lineList.get(0)] = inputs[lineList.get(1)];
+				inputs[lineList.get(1)] = temp;
+				StringBuilder newInput = new StringBuilder();
+				for (int i = 0; i < inputs.length; i++) {
+					newInput.append(inputs[i]+"\n");
+				}
+				Token token;
+				CharStream stream = CharStreams.fromString(newInput.toString(), file.toString());
+				CPP14Lexer lexer = new CPP14Lexer(stream);
+				lexer.removeErrorListeners();
+				lexer.addErrorListener(DescriptiveErrorListener.INSTANCE);
+				CommonTokenStream tokens = new CommonTokenStream(lexer);
+				tokens.fill();
+				int a=0;
+				int[] target = {0, 0};
+				target = methodSeparator.get(n);
+				for (a = target[0]; a <= target[1]; a++) {
+					token = tokens.get(a);
+					mROsWriter.print(token.getText() + " ");
+				}
+				mROsWriter.close();
+				mROsID++;
+			}
+			if(doFirstFunctionOnly)break;
+		}
+	}
+	private void print(Object a){
+		System.out.print(a);
 	}
 }
